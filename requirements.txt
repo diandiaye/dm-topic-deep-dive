@@ -1,2 +1,3 @@
 polars==0.20.25
 tqdm==4.66.5
+serpapi==0.1.5
