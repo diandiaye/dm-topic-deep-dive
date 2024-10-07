@@ -112,61 +112,68 @@ if page_selection == "🏠 Home" and not st.session_state['insights_in_progress'
 
 # Get Insights Page Logic
 elif page_selection == "🤖 Get Insights":
-    # Set the flag for 'insights_in_progress' to True
-    st.session_state['insights_in_progress'] = True
+    # File uploader to upload the Excel file
+    st.title("Upload the Insights File")
+    uploaded_file = st.file_uploader("Please upload the `kraft_framework_market_insigths_generation.xlsx` file", type=["xlsx"])
 
-    # "Get Insights" section content
-    st.title("Fetching New Market Insights")
+    # Only run the insights process if a file has been uploaded
+    if uploaded_file is not None:
+        # Set the flag for 'insights_in_progress' to True
+        st.session_state['insights_in_progress'] = True
 
-    # Add a progress bar (circle style)
-    progress_bar = st.progress(0)  # Initialize the progress bar at 0%
+        # "Get Insights" section content
+        st.title("Fetching New Market Insights")
 
-    st.write("Running the scraper and processing the data...")
+        # Add a progress bar (circle style)
+        progress_bar = st.progress(0)  # Initialize the progress bar at 0%
 
-    # Simulating a step-by-step progress (replace this with actual function calls)
-    steps = 5  # Number of steps (for simulation)
-    for step in range(steps):
-        # Simulate a delay for each step (this is where real processes would happen)
-        sleep(1)  # Simulate some work being done
-        progress_bar.progress((step + 1) / steps)  # Update progress bar
+        st.write("Running the scraper and processing the data...")
 
-    # Once the progress is complete, display the results
-    # Read the Excel file containing the topics
-    dataframe = pl.read_excel("DATA/kraft_framework_market_insigths_generation.xlsx")
+        # Simulating a step-by-step progress (replace this with actual function calls)
+        steps = 5  # Number of steps (for simulation)
+        for step in range(steps):
+            # Simulate a delay for each step (this is where real processes would happen)
+            sleep(1)  # Simulate some work being done
+            progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-    # Your OpenAI API Key
-    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-    
-    # SerpAPI Key
-    API_KEY = os.environ.get("API_KEY") 
+        # Process the uploaded Excel file using Polars
+        dataframe = pl.read_excel(uploaded_file)
 
-    # User input for queries as a list
-    QUERIES = list(dataframe["Topic"])[:3]
+        # Your OpenAI API Key
+        OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+        
+        # SerpAPI Key
+        API_KEY = os.environ.get("API_KEY") 
 
-    # Fetching search results for all queries
-    texts_df = search(API_KEY, QUERIES, "Beauty")  # Modify as needed for specific context
+        # User input for queries as a list
+        QUERIES = list(dataframe["Topic"])[:3]
 
-    # User input for unique topics as a list
-    UNIQUE_TOPICS = list(dataframe["Topic"])[:3]
+        # Fetching search results for all queries
+        texts_df = search(API_KEY, QUERIES, "Beauty")  # Modify as needed for specific context
 
-    # Loop through each unique topic and run configurations
-    results = []
-    for unique_topic in UNIQUE_TOPICS:
-        # Running multiple configurations with OpenAI API Key, unique topic, and fetched data
-        tab = run_multiple_configs(OPENAI_API_KEY, unique_topic, texts_df, 50)
+        # User input for unique topics as a list
+        UNIQUE_TOPICS = list(dataframe["Topic"])[:3]
 
-        # Transforming and storing market insights data
-        transformed_data = transform_market_insights_data(tab)
-        results.append({unique_topic: transformed_data})
+        # Loop through each unique topic and run configurations
+        results = []
+        for unique_topic in UNIQUE_TOPICS:
+            # Running multiple configurations with OpenAI API Key, unique topic, and fetched data
+            tab = run_multiple_configs(OPENAI_API_KEY, unique_topic, texts_df, 50)
 
-    # Display the results
-    st.write(json.dumps(results, indent=4))
+            # Transforming and storing market insights data
+            transformed_data = transform_market_insights_data(tab)
+            results.append({unique_topic: transformed_data})
 
-    # Notify user that the task is complete
-    st.success("Market insights generation complete!")
+        # Display the results
+        st.write(json.dumps(results, indent=4))
 
-    # Reset the 'insights_in_progress' flag to False once done
-    st.session_state['insights_in_progress'] = False
+        # Notify user that the task is complete
+        st.success("Market insights generation complete!")
+
+        # Reset the 'insights_in_progress' flag to False once done
+        st.session_state['insights_in_progress'] = False
+    else:
+        st.write("Please upload the `kraft_framework_market_insigths_generation.xlsx` file to proceed.")
 
 # Market Insights Page Logic
 elif page_selection == "📈 Market Insights" and not st.session_state['insights_in_progress']:
