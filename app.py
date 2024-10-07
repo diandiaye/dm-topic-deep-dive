@@ -17,6 +17,9 @@ from open_ai_market_insigth import (
 with open("kraft_market_insigths.json") as f:
     data = json.load(f)
 
+# Add a logo to the top left corner
+st.image("logo-dm.png", width=150)  # Adjust the width as per your logo size
+
 # Inject custom CSS for styling the header, sidebar, and links
 st.markdown(
     """
@@ -80,14 +83,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Function to extract domain and path from the URL
-def format_source_url(url):
-    parsed_url = urlparse(url)
-    domain = parsed_url.netloc
-    path = parsed_url.path
-    formatted_url = domain + path
-    return formatted_url
-
 # Sidebar with Navigation and Buttons (Reorganized)
 st.sidebar.title("📊 Navigation")
 page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights"], index=0)
@@ -113,67 +108,83 @@ if page_selection == "🏠 Home" and not st.session_state['insights_in_progress'
 # Get Insights Page Logic
 elif page_selection == "🤖 Get Insights":
     # File uploader to upload the Excel file
-    st.title("Upload the Insights File")
-    uploaded_file = st.file_uploader("Please upload the `kraft_framework_market_insigths_generation.xlsx` file", type=["xlsx"])
+    st.title("Upload the Topic framework File")
+    uploaded_file = st.file_uploader("Please upload an Excel file containing a 'Topic' column", type=["xlsx"])
 
     # Only run the insights process if a file has been uploaded
     if uploaded_file is not None:
-        # Set the flag for 'insights_in_progress' to True
-        st.session_state['insights_in_progress'] = True
+        # Read the Excel file using Polars
+        try:
+            dataframe = pl.read_excel(uploaded_file)
+            
+            # Check if 'Topic' column exists
+            if 'Topic' not in dataframe.columns:
+                st.error("The uploaded file does not contain a 'Topic' column. Please upload a valid file.")
+            else:
+                topic_list = list(dataframe["Topic"])
 
-        # "Get Insights" section content
-        st.title("Fetching New Market Insights")
+                # Allow the user to select specific topics or choose all
+                selected_topics = st.multiselect("Select topics to run insights on", topic_list)
 
-        # Add a progress bar (circle style)
-        progress_bar = st.progress(0)  # Initialize the progress bar at 0%
+                # Only proceed if at least one topic is selected
+                if len(selected_topics) > 0:
+                    # Set the flag for 'insights_in_progress' to True
+                    st.session_state['insights_in_progress'] = True
 
-        st.write("Running the scraper and processing the data...")
+                    # "Get Insights" section content
+                    st.title("Fetching New Market Insights")
 
-        # Simulating a step-by-step progress (replace this with actual function calls)
-        steps = 5  # Number of steps (for simulation)
-        for step in range(steps):
-            # Simulate a delay for each step (this is where real processes would happen)
-            sleep(1)  # Simulate some work being done
-            progress_bar.progress((step + 1) / steps)  # Update progress bar
+                    # Add a progress bar (circle style)
+                    progress_bar = st.progress(0)  # Initialize the progress bar at 0%
 
-        # Process the uploaded Excel file using Polars
-        dataframe = pl.read_excel(uploaded_file)
+                    st.write("Running the scraper and processing the data...")
 
-        # Your OpenAI API Key
-        OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-        
-        # SerpAPI Key
-        API_KEY = os.environ.get("API_KEY") 
+                    # Simulating a step-by-step progress (replace this with actual function calls)
+                    steps = 5  # Number of steps (for simulation)
+                    for step in range(steps):
+                        # Simulate a delay for each step (this is where real processes would happen)
+                        sleep(1)  # Simulate some work being done
+                        progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-        # User input for queries as a list
-        QUERIES = list(dataframe["Topic"])[:3]
+                    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+                    
+                    # SerpAPI Key
+                    API_KEY = os.environ.get("API_KEY") 
 
-        # Fetching search results for all queries
-        texts_df = search(API_KEY, QUERIES, "Beauty")  # Modify as needed for specific context
+                    # Fetching search results for the selected topics
+                    texts_df = search(API_KEY, selected_topics, "Beauty")  # Modify as needed for specific context
 
-        # User input for unique topics as a list
-        UNIQUE_TOPICS = list(dataframe["Topic"])[:3]
+                    # Loop through each selected topic and run configurations
+                    results = []
+                    for unique_topic in selected_topics:
+                        # Running multiple configurations with OpenAI API Key, unique topic, and fetched data
+                        tab = run_multiple_configs(OPENAI_API_KEY, unique_topic, texts_df, 50)
 
-        # Loop through each unique topic and run configurations
-        results = []
-        for unique_topic in UNIQUE_TOPICS:
-            # Running multiple configurations with OpenAI API Key, unique topic, and fetched data
-            tab = run_multiple_configs(OPENAI_API_KEY, unique_topic, texts_df, 50)
+                        # Transforming and storing market insights data
+                        transformed_data = transform_market_insights_data(tab)
+                        results.append({unique_topic: transformed_data})
 
-            # Transforming and storing market insights data
-            transformed_data = transform_market_insights_data(tab)
-            results.append({unique_topic: transformed_data})
+                    # Save the results to a JSON file named with the first letter of the uploaded Excel file + "_generated_market_insights.json"
+                    first_letter = uploaded_file.name[0]  # Get the first letter of the uploaded file's name
+                    output_filename = f"{first_letter}_generated_market_insights.json"
+                    
+                    with open(output_filename, "w") as output_file:
+                        json.dump(results, output_file, indent=4)
+                    
+                    # Display the results
+                    st.write(json.dumps(results, indent=4))
 
-        # Display the results
-        st.write(json.dumps(results, indent=4))
+                    # Notify user that the output file is saved
+                    st.success(f"Market insights generation complete! File saved as `{output_filename}`.")
 
-        # Notify user that the task is complete
-        st.success("Market insights generation complete!")
-
-        # Reset the 'insights_in_progress' flag to False once done
-        st.session_state['insights_in_progress'] = False
+                    # Reset the 'insights_in_progress' flag to False once done
+                    st.session_state['insights_in_progress'] = False
+                else:
+                    st.write("Please select at least one topic to proceed.")
+        except Exception as e:
+            st.error(f"Error reading the file: {e}")
     else:
-        st.write("Please upload the `kraft_framework_market_insigths_generation.xlsx` file to proceed.")
+        st.write("Please upload an Excel file to proceed.")
 
 # Market Insights Page Logic
 elif page_selection == "📈 Market Insights" and not st.session_state['insights_in_progress']:
@@ -234,8 +245,7 @@ elif page_selection == "📈 Market Insights" and not st.session_state['insights
                 
                 # Extract and display formatted URL as a clickable text
                 source_url = insight["Source"]
-                formatted_url = format_source_url(source_url)
-                st.markdown(f'<a href="{source_url}" class="external-link" target="_blank">{formatted_url}</a>', unsafe_allow_html=True)
+                st.markdown(f'<a href="{source_url}" class="external-link" target="_blank">{source_url}</a>', unsafe_allow_html=True)
                 
                 # End of card
                 st.markdown('</div>', unsafe_allow_html=True)
