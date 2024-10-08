@@ -1,4 +1,5 @@
 polars==0.20.25
+playwright==1.47.0
 tqdm==4.66.5
 serpapi==0.1.5
 faiss-cpu==1.8.0.post1
@@ -74,7 +75,6 @@ openpyxl==3.1.2
 orjson==3.10.7
 packaging==24.0
 pandas==2.2.2
-playwright==1.47.0
 polars==0.20.25
 preshed==3.0.9
 proto-plus==1.23.0
