@@ -12,13 +12,7 @@ from open_ai_market_insigth import (
     search
 )
 import subprocess
-
-# Call the shell script
-result = subprocess.run(['test.sh'], capture_output=True, text=True)
-
-# Print the output
-print("Script Output:\n", result.stdout)
-print("Script Errors (if any):\n", result.stderr)
+subprocess.call(['sh', './test.sh']) # Thanks @Jim Dennis for suggesting the []
 
 # Load data from external JSON file
 with open("kraft_market_insigths.json") as f:
