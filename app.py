@@ -17,14 +17,6 @@ from open_ai_market_insigth import (
 with open("kraft_market_insigths.json") as f:
     data = json.load(f)
 
-# Add favicon (logo in web browser tab)
-st.markdown(
-    """
-    <link rel="icon" href="logo-dm.png" type="image/png">
-    """,
-    unsafe_allow_html=True
-)
-
 # Add a logo to the top left corner
 st.image("logo-dm.png", width=150)  # Adjust the width as per your logo size
 
@@ -154,13 +146,13 @@ elif page_selection == "🤖 Get Insights":
                         sleep(1)  # Simulate some work being done
                         progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-                    OPENAI_API_KEY = "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" ##os.environ.get("OPENAI_API_KEY")
+                    OPENAI_API_KEY = "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"
                     
                     # SerpAPI Key
-                    API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1" ##os.environ.get("API_KEY") 
+                    API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1"
 
                     # Fetching search results for the selected topics
-                    texts_df = search(API_KEY, selected_topics, "Beauty")  # Modify as needed for specific context
+                    texts_df = search(API_KEY, selected_topics, "Food")  # Modify as needed for specific context
 
                     # Loop through each selected topic and run configurations
                     results = []
