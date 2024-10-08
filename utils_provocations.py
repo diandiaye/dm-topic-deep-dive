@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 from google.cloud import storage
-from typing import List, Dict, Tuple, Any, Optional , Union
+from typing import List, Dict, Tuple, Any, Optional, Union
 import pandas as pd
 import ollama.client as client
 import polars as pl
@@ -45,16 +45,16 @@ def save_dataframe_to_gcs(dataframe: pl.DataFrame, bucket: str, file_path: str) 
     # Remove the temporary file
     os.remove(temp_file_name)
 
-def read_config(bucket_name: str, config_path:str) -> Tuple[dict, dict]:
+def read_config(bucket_name: str, config_path: str) -> Tuple[dict, dict]:
     """
-    Reads the contents of a configuration file stored in a Google Cloud Storage (GCS) bucket and extracts the values of 'description_parameters' and 'image_parameters'.
+    Reads the contents of a configuration file stored in a Google Cloud Storage (GCS) bucket and extracts the values of 'description_parameters' and 'polarity_parameters'.
 
     Args:
         bucket_name (str): The name of the GCS bucket where the configuration file is stored.
         config_path (str): The path to the configuration file in the GCS bucket.
 
     Returns:
-        Tuple[dict, dict]: A tuple containing 'desc_params' and 'image_params', which are dictionaries representing the extracted values of 'description_parameters' and 'image_parameters' from the configuration file.
+        Tuple[dict, dict]: A tuple containing 'desc_params' and 'polarity_params', which are dictionaries representing the extracted values.
     """
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
@@ -64,12 +64,10 @@ def read_config(bucket_name: str, config_path:str) -> Tuple[dict, dict]:
     # now you have as dict
     dict_result = json.loads(str_json)
     desc_params = dict_result.get('description_parameters', {})
-    # image_params = dict_result.get('image_parameters', {})
-    # return desc_params, image_params
     polarity_params = dict_result.get('polarity_parameters', {})
     return desc_params, polarity_params
 
-def read_data(bucket_name: str, file_path:str) -> pl.DataFrame:
+def read_data(bucket_name: str, file_path: str) -> pl.DataFrame:
     """
     Reads data from a file stored in a Google Cloud Storage (GCS) bucket and returns it as a DataFrame.
 
@@ -101,7 +99,7 @@ def read_data(bucket_name: str, file_path:str) -> pl.DataFrame:
         
     return dataframe
 
-def read_excel_sheet(bucket_name: str, file_path , sheet_name):
+def read_excel_sheet(bucket_name: str, file_path, sheet_name):
     """
     Reads a specific sheet from an Excel file stored in a Google Cloud Storage (GCS) bucket and returns it as a DataFrame.
 
@@ -131,9 +129,10 @@ def read_excel_sheet(bucket_name: str, file_path , sheet_name):
             raise ValueError("Unsupported file format. Please use a .xlsx file.")
         
     return dataframe
+
 def save_dataframe_to_gcs_pd(dataframe: pd.DataFrame, bucket: str, file_path: str) -> None:
     """
-    Save a Polars DataFrame to a Google Cloud Storage bucket as an Excel file.
+    Save a Pandas DataFrame to a Google Cloud Storage bucket as an Excel file.
 
     Args:
         dataframe: The Pandas DataFrame to be saved.
@@ -161,7 +160,6 @@ def save_dataframe_to_gcs_pd(dataframe: pd.DataFrame, bucket: str, file_path: st
     # Remove the temporary file
     os.remove(temp_file_name)
 
-
 def text_generation(messages: str, model: str) -> str:
     """
     Generates text using a specified model and message prompt.
@@ -184,7 +182,6 @@ def load_config(file_path: str) -> Dict:
         config = json.load(file)
     return config
 
-
 # Global variables
 THEMES = [
     "Technological Innovation",
@@ -196,7 +193,7 @@ THEMES = [
     "Cultural Evolution",
     "Educational Reforms"
 ]
- 
+
 TOPICS_CLASSIFICATION_PROMPT_TEMPLATE = """
 I have a set of themes and a list of topics with corresponding keywords. Each topic is associated with only one theme (the most related one) based on the context provided by its keywords. Your task is to classify each topic into only one theme (the most related one) below based on its keywords. If a topic clearly aligns with multiple themes, assign it to the most relevant one. The themes are as follows:
 
@@ -252,7 +249,7 @@ def classify_topics_into_themes(df: pl.DataFrame) -> pl.DataFrame:
 
     # Format the 'Keyword' column as a string for better readability
     result_df = result_df.with_columns(
-        pl.col("Keyword").map_elements(lambda k: ", ".join(k)).alias("Keywords")
+        pl.col("Keyword").map_elements(lambda k: ", ".join(k), return_dtype=pl.Utf8).alias("Keywords")
     )
 
     # Select and reorder the columns as needed
