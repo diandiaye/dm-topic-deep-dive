@@ -149,10 +149,6 @@ elif page_selection == "🤖 Get Insights":
                    ## OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
                     OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
                     API_KEY = st.secrets["API_KEY"]
-                    # Display the keys (for debugging or logging purposes, you may want to avoid printing sensitive information)
-                    st.write("OPENAI API Key: ", OPENAI_API_KEY)
-                    st.write("API Key: ", API_KEY)
-
                     
                     # SerpAPI Key
                     ###API_KEY = os.environ.get("API_KEY") 
