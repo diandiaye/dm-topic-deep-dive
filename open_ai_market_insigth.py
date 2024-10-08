@@ -225,6 +225,7 @@ def run_smart_scraper(
 
             # Run the smart scraper on the URL
             result = smart_scraper_graph.run()
+            print("result:', result)
 
             # Save the last attempted result
             last_result = {
@@ -238,7 +239,7 @@ def run_smart_scraper(
             valid_result = False
 
             for key, main_field_data in result.items():
-                print(key,main_field_data)
+
                 if isinstance(main_field_data, dict) and main_field_data:
                     # Check if all values in main_field_data are not empty or 'NA'
                     if all(
