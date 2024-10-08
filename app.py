@@ -239,7 +239,7 @@ elif page_selection == "📈 Market Insights" and not st.session_state['insights
                     st.markdown('</div>', unsafe_allow_html=True)
 
 # Provocations Page Logic
-elif page_selection == "💡 Provocations":
+elif page_selection == "💡 Topic Provocations":
     st.write("Welcome to the D&M Provocations generation page. Our algorithms make it possible to generate a provocative and forward thinking according to a given topic.")
 
     st.subheader("Select a topic to generate provocations:")
