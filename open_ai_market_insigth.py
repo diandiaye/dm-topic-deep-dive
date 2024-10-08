@@ -9,6 +9,7 @@ import justext
 from PyPDF2 import PdfReader
 from io import BytesIO
 from serpapi import GoogleSearch
+#import serpapi
 from scrapegraphai.graphs import SmartScraperGraph
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils import text_generation
@@ -54,7 +55,7 @@ def fetch_search_results(query: str, api_key: str, time_range: Optional[str] = N
         "num": 250,
         "tbs": tbs_value  # Apply the time filter if provided
     }
-    
+    #search = serpapi.search(search_params)
     search = GoogleSearch(search_params)
     result = search.get_dict()
 
@@ -327,8 +328,11 @@ def get_prompts(topic: str, domain: str) -> List[Tuple[str, str]]:
 
     # Define prompt templates
     prompts_templates = {
+        "Potential Market Growth": f"Worldwide Potential Market Growth in these markets {markets} in the industry of {domain} in this topic: ",
+        "Actual Market Size": f"Actual Market Size in these markets {markets} in the industry of {domain} in this topic: ",
         "Future Market Size": f"Future Market Size in these markets {markets} in the industry of {domain} in this topic: ",
-        "Actual Investment": f"Actual Investment in these markets {markets} in the industry of {domain} in this topic: "
+        "Actual Investment": f"Actual Investment in these markets {markets} in the industry of {domain} in this topic: ",
+        "Investment Growth": f"Actual percentage of investment growth in these markets {markets} in {domain} in this topic: ",
     }
 
     # Convert the prompts dictionary into a list of tuples with their descriptions
@@ -402,6 +406,21 @@ def run_multiple_configs(
     # Define a function to create prompts based on the given type and topic
     def create_prompt(prompt_type: str, topic: str) -> str:
         prompt_templates = {
+            "Market Growth": f"""
+As a journalist with expertise in market analytics, analyze the content and provide the following information:
+
+**Potential Market Growth in {topic}:**
+- The estimated potential market growth percentage. e.g., "Potential Market Growth in 2022": "9.9% CAGR"
+- Give a short description (sentence from the text where the potential market growth percentage is mentioned.)
+""",
+            "Actual Market Size": f"""
+As a journalist with expertise in market analytics, analyze the content and provide the following information:
+
+**Market Size (Actual Market Size) in {topic}:**
+- Estimated market size. e.g., "USD 196.20 billion".
+- Give a short description (sentence from the text where the current market size is mentioned.)
+- Don't include "CAGR" in the description.
+""",
             "Future Market Size": f"""
 As a journalist with expertise in market analytics, analyze the content and provide the following information:
 
@@ -415,7 +434,16 @@ As a journalist with expertise in market analytics, analyze the content and prov
 
 **Actual Investment in {topic}:**
 - Actual amount of investment in {topic}. e.g., "USD 16.3 billion"
+- Actual percentage of investment growth in {topic}. e.g., "12% in 2022, 13.1% in 2023, 14.1% in 2024"
 - Give a short description (sentence where the actual amount of investment is mentioned.)
+- Don't include "CAGR" in the description.
+""",
+            "Investment Growth": f"""
+As a journalist with expertise in market analytics, analyze the content and provide the following information:
+
+**Actual percentage of investment growth in {topic}:**
+- Actual percentage of investment growth in {topic}. e.g., "12% in 2023"
+- Give a short description (sentence where the actual percentage of investment growth is mentioned.)
 - Don't include "CAGR" in the description.
 """
         }
@@ -423,8 +451,11 @@ As a journalist with expertise in market analytics, analyze the content and prov
 
     # Configurations for each prompt type
     prompt_configs = [
+        {"type": "Market Growth", "results_field": "Potential Market Growth"},
+        {"type": "Actual Market Size", "results_field": "Actual Market Size"},
         {"type": "Future Market Size", "results_field": "Future Market Size"},
         {"type": "Actual Investment", "results_field": "Actual Investment"},
+        {"type": "Investment Growth", "results_field": "Investment Growth"}
     ]
 
     # Run the smart scraper based on the provided configurations
@@ -444,42 +475,44 @@ As a journalist with expertise in market analytics, analyze the content and prov
     return results
 
 
-from typing import List, Dict, Any
-
-def transform_market_insights_data(data: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+def transform_market_insights_data(data: InputData) -> OutputData:
     """
     Transform the input data into a structured format with topics and insights.
 
     Args:
-        data (List[Dict[str, Any]]): A list of dictionaries containing 'topic', 'result', and 'url'.
+        data (InputData): A list of dictionaries containing 'topic', 'result', and 'url'.
 
     Returns:
-        Dict[str, List[Dict[str, Any]]]: A dictionary with topics as keys, each containing a list of insights.
+        OutputData: A dictionary with a list of topics, each containing insights.
     """
-    output: Dict[str, List[Dict[str, Any]]] = {}
+    output: OutputData = {"TOPICS": []}
+    topics: Dict[str, Dict[str, Any]] = {}
 
     for item in data:
         topic: str = item['topic']
-        insight: Dict[str, Any] = item['result']
+        insight: InsightDict = item['result']
         url: str = item['url']
 
-        # Flattening and formatting the insight data correctly
+        # Flattening nested dictionaries and ensuring the desired order of fields
         flattened_insight: Dict[str, Any] = {}
 
+        # Flattening and formatting the insight data correctly
         for key, value in insight.items():
             if isinstance(value, dict):
                 flattened_insight.update(value)
             else:
                 flattened_insight[key] = value
 
-        # Adding the 'Source' and 'Insight_category' fields
-        flattened_insight["Source"] = url
-        flattened_insight["Insight_category"] = "Market"
+        # Adding the 'url' and 'insight_category' at the end
+        flattened_insight["url"] = url
+        flattened_insight["insight_category"] = "Market"
 
-        # Adding insights to the corresponding topic
-        if topic not in output:
-            output[topic] = []
+        # Organizing topics and insights
+        if topic not in topics:
+            topics[topic] = {"topic": topic, "insights": []}
 
-        output[topic].append(flattened_insight)
+        topics[topic]["insights"].append(flattened_insight)
 
+    # Convert the topics dictionary to a list of values
+    output["TOPICS"] = list(topics.values())
     return output
