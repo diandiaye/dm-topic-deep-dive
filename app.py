@@ -11,6 +11,23 @@ from open_ai_market_insigth import (
     run_multiple_configs, 
     search
 )
+import subprocess
+
+# Command to execute
+command = ["ollama", "run", "llama3"]
+
+# Running the command
+result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+# Printing the output
+print("Output:")
+print(result.stdout)
+
+# Printing any errors
+if result.stderr:
+    print("Errors:")
+    print(result.stderr)
+
 # Load data from external JSON file
 with open("kraft_market_insigths.json") as f:
     data = json.load(f)
