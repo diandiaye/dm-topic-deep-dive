@@ -19,6 +19,10 @@ with open("kraft_market_insigths.json") as f:
 with open("DATA/Kraft_topics_provocations.json") as prov_file:
     provocations_data = json.load(prov_file)
 
+# Load Topic Evolution data from JSON file
+with open("DATA/Kraft_topic_evolution.json") as evo_file:
+    topic_evolution_data = json.load(evo_file)
+
 # Initialize session state variables if not already set
 if 'insights_in_progress' not in st.session_state:
     st.session_state['insights_in_progress'] = False
@@ -66,6 +70,39 @@ st.markdown(
     .provocation-box p {
         font-size: 1rem;
     }
+
+    /* Timeline styles */
+    .timeline-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .timeline-button {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: white;
+        cursor: pointer;
+        text-align: center;
+    }
+    .timeline-button:hover {
+        background-color: #f1f1f1;
+    }
+    .timeline-button.active {
+        border: 2px solid #1f77b4;
+        color: #1f77b4;
+        font-weight: bold;
+    }
+    .evolution-text {
+        border: 1px solid #1f77b4;
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 1rem;
+        color: #333;
+        margin-top: 10px;
+    }
     </style>
     """, 
     unsafe_allow_html=True
@@ -73,7 +110,7 @@ st.markdown(
 
 # Sidebar with Navigation and Buttons (Reorganized)
 st.sidebar.title("📊 Navigation")
-page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights", "💡 Provocations"], index=0)
+page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights", "💡 Provocations", "📉 Topic Evolution"], index=0)
 
 # Home Page Logic
 if page_selection == "🏠 Home":
@@ -160,52 +197,46 @@ elif page_selection == "🤖 Get Insights":
 
 # Market Insights Page Logic
 elif page_selection == "📈 Market Insights" and not st.session_state['insights_in_progress']:
-    if 'selected_topic' not in st.session_state:
-        st.session_state['selected_topic'] = None
+    st.title("Market Insights")
 
-    st.markdown(
-        """
-        <div class="header">
-            <h1>Get insights from your data</h1>
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
-
+    # No default topic selected
     st.subheader("Select a topic to explore the latest market insights:")
 
     topics = list(data.keys())
-    selected_topic = st.selectbox("Pick a topic", topics, index=0 if st.session_state['selected_topic'] is None else topics.index(st.session_state['selected_topic']))
+    selected_topic = st.selectbox("Pick a topic", topics, index=None)  # No default selection
 
-    st.session_state['selected_topic'] = selected_topic
+    if selected_topic:
+        # Show progress bar for 3 seconds
+        with st.spinner("Looking for interesting insights, please wait..."):
+            time.sleep(3)  # Simulate delay
 
-    st.header(f"🔍 Insights for **{selected_topic}**")
-    insights = data[selected_topic][selected_topic]
+        st.header(f"🔍 Insights for **{selected_topic}**")
+        insights = data[selected_topic][selected_topic]
 
-    cols_per_row = 2
+        cols_per_row = 2
 
-    for i in range(0, len(insights), cols_per_row):
-        cols = st.columns(cols_per_row)
-        for col, insight in zip(cols, insights[i:i + cols_per_row]):
-            if 'NA' in insight.values():
-                continue
-            
-            with col:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                
-                title = insight.get('Estimated potential market growth percentage', 
-                                    insight.get('Estimated Market Size', 
-                                                insight.get('Future Estimated market size', 
-                                                            insight.get('Actual Amount of investment in the 3D Printed at Home', ''))))
-                st.markdown(f'<p class="blue-text">{title}</p>', unsafe_allow_html=True)
-                
-                description = insight.get('Description', '')
-                st.write(description)
-                
-                source_url = insight["Source"]
-                st.markdown(f'<a href="{source_url}" class="external-link" target="_blank">{source_url}</a>', unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+        for i in range(0, len(insights), cols_per_row):
+            cols = st.columns(cols_per_row)
+            for col, insight in zip(cols, insights[i:i + cols_per_row]):
+                if 'NA' in insight.values():
+                    continue
+
+                with col:
+                    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+                    title = insight.get('Estimated potential market growth percentage', 
+                                        insight.get('Estimated Market Size', 
+                                                    insight.get('Future Estimated market size', 
+                                                                insight.get('Actual Amount of investment in the 3D Printed at Home', ''))))
+                    st.markdown(f'<p class="blue-text">{title}</p>', unsafe_allow_html=True)
+
+                    description = insight.get('Description', '')
+                    st.write(description)
+
+                    source_url = insight["Source"]
+                    st.markdown(f'<a href="{source_url}" class="external-link" target="_blank">{source_url}</a>', unsafe_allow_html=True)
+
+                    st.markdown('</div>', unsafe_allow_html=True)
 
 # Provocations Page Logic
 elif page_selection == "💡 Provocations":
@@ -239,4 +270,41 @@ elif page_selection == "💡 Provocations":
                 """, 
                 unsafe_allow_html=True
             )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# Topic Evolution Page Logic
+elif page_selection == "📉 Topic Evolution":
+   ## st.title("Topic Evolution")
+    st.write("Welcome to the Topic Evolution page. Our algorithms make it possible to explore the evolution and key events influencing the growth of a given topic over time.")
+
+    st.subheader("Select a topic to explore its evolution over time:")
+
+    # Extract the list of unique topics from the topic evolution JSON
+    topics = list(topic_evolution_data.keys())
+    selected_topic = st.selectbox("Select a topic", topics, index=None)  # No default selection
+
+    if selected_topic:
+        # Show progress bar for 4 seconds
+        with st.spinner("Generating topic evolution, please wait..."):
+            time.sleep(4)  # Simulate delay
+
+        # Retrieve timeline data for the selected topic
+        timeline_data = topic_evolution_data[selected_topic]
+
+        # Sort the years to display in chronological order
+        sorted_years = sorted(timeline_data.keys())
+
+        # Select a year to display the corresponding content
+        selected_year = st.selectbox("Select a year", sorted_years)
+
+        # Display the corresponding content for the selected year
+        st.markdown(f"<div class='evolution-text'>{timeline_data[selected_year]}</div>", unsafe_allow_html=True)
+
+        # Timeline display
+        st.markdown('<div class="timeline-container">', unsafe_allow_html=True)
+        for year in sorted_years:
+            button_class = "timeline-button"
+            if year == selected_year:
+                button_class += " active"
+            st.markdown(f"<div class='{button_class}'>{year}</div>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
