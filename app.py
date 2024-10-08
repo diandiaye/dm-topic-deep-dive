@@ -1,9 +1,8 @@
 import streamlit as st
 import json
-import os
-from urllib.parse import urlparse
-import polars as pl
 from time import sleep  # For simulating progression
+import polars as pl
+from provocations import generate_provocations  # Import the provocations function
 from open_ai_market_insigth import (
     fetch_search_results, 
     process_scraping, 
@@ -17,66 +16,53 @@ from open_ai_market_insigth import (
 with open("kraft_market_insigths.json") as f:
     data = json.load(f)
 
-# Add a logo to the top left corner
-st.image("logo-dm.png", width=150)  # Adjust the width as per your logo size
+# Initialize session state variables if not already set
+if 'insights_in_progress' not in st.session_state:
+    st.session_state['insights_in_progress'] = False
+if 'selected_topic' not in st.session_state:
+    st.session_state['selected_topic'] = None
 
-# Inject custom CSS for styling the header, sidebar, and links
+# Add a logo to the top left corner
+st.image("logo-dm.png", width=150)
+
+# Inject custom CSS for styling
 st.markdown(
     """
     <style>
-    .header {
-        margin-top: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .header h1 {
-        color: #1f77b4;  /* Blue color */
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-    .tabs {
-        display: flex;
-        gap: 30px;
-        margin-top: 10px;
-        font-size: 1.2rem;
-    }
-    .tabs a {
-        color: #6c757d;
-        text-decoration: none;
-    }
-    .tabs a.active {
-        color: #1f77b4;
-        font-weight: bold;
-        border-bottom: 2px solid #1f77b4;
-    }
-    .blue-text {
-        color: #1f77b4;
-        font-weight: bold;
-        font-size: 1.5rem;
-    }
-    .card {
+    .header { margin-top: 20px; display: flex; align-items: center; gap: 10px; }
+    .header h1 { color: #1f77b4; font-size: 2.5rem; font-weight: bold; }
+    .tabs { display: flex; gap: 30px; margin-top: 10px; font-size: 1.2rem; }
+    .tabs a { color: #6c757d; text-decoration: none; }
+    .tabs a.active { color: #1f77b4; font-weight: bold; border-bottom: 2px solid #1f77b4; }
+    .blue-text { color: #1f77b4; font-weight: bold; font-size: 1.5rem; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    .card:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); }
+    .external-link { display: inline-block; color: #1f77b4; font-weight: bold; text-decoration: none; font-size: 1rem; }
+    .external-link:hover { text-decoration: underline; }
+    .external-link::after { content: ' \\2197'; }
+    .provocation-card {
+        background-color: #f9f9f9;
         border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .card:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    }
-    .external-link {
-        display: inline-block;
+    .provocation-title {
         color: #1f77b4;
         font-weight: bold;
-        text-decoration: none;
+        font-size: 1.25rem;
+    }
+    .provocation-content {
         font-size: 1rem;
+        color: #333;
+        margin-top: 10px;
     }
-    .external-link:hover {
-        text-decoration: underline;
-    }
-    .external-link::after {
-        content: ' \\2197';  /* Unicode for external link arrow icon */
+    .provocation-theme {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #555;
+        margin-top: 5px;
     }
     </style>
     """, 
@@ -85,18 +71,10 @@ st.markdown(
 
 # Sidebar with Navigation and Buttons (Reorganized)
 st.sidebar.title("📊 Navigation")
-page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights"], index=0)
-
-# Adding space to separate buttons
-st.sidebar.markdown("---")
-
-# Initialize session state to track if 'Get Insights' is clicked
-if 'insights_in_progress' not in st.session_state:
-    st.session_state['insights_in_progress'] = False
+page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights", "💡 Provocations"], index=0)
 
 # Home Page Logic
-if page_selection == "🏠 Home" and not st.session_state['insights_in_progress']:
-    # Home page content
+if page_selection == "🏠 Home":
     st.title("Welcome to the Market Insights Dashboard")
     st.write(
         """
@@ -107,7 +85,6 @@ if page_selection == "🏠 Home" and not st.session_state['insights_in_progress'
 
 # Get Insights Page Logic
 elif page_selection == "🤖 Get Insights":
-    # File uploader to upload the Excel file
     st.title("Upload the Topic framework File")
     uploaded_file = st.file_uploader("Please upload an Excel file containing a 'Topic' column", type=["xlsx"])
 
@@ -146,7 +123,7 @@ elif page_selection == "🤖 Get Insights":
                         sleep(1)  # Simulate some work being done
                         progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-                    OPENAI_API_KEY = "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"
+                    OPENAI_API_KEY = "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"
                     
                     # SerpAPI Key
                     API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1"
@@ -171,9 +148,27 @@ elif page_selection == "🤖 Get Insights":
                     with open(output_filename, "w") as output_file:
                         json.dump(results, output_file, indent=4)
                     
-                    # Display the results
-                    st.write(json.dumps(results, indent=4))
-
+                    # Display the results in a more beautiful way
+                    st.header("📝 Generated Market Insights")
+                    for result in results:
+                        topic_name = list(result.keys())[0]
+                        insights_data = result[topic_name]
+                        
+                        st.markdown(f"### **Topic: {topic_name}**")
+                        for insight in insights_data:
+                            st.markdown(
+                                f"""
+                                <div class="card">
+                                    <p class="blue-text">Estimated Growth: {insight.get('Estimated potential market growth percentage', 'N/A')}</p>
+                                    <p>Market Size: {insight.get('Estimated Market Size', 'N/A')}</p>
+                                    <p>Future Market Size: {insight.get('Future Estimated market size', 'N/A')}</p>
+                                    <p>Description: {insight.get('Description', 'N/A')}</p>
+                                    <a href="{insight.get('Source', '#')}" class="external-link" target="_blank">Source</a>
+                                </div>
+                                """, 
+                                unsafe_allow_html=True
+                            )
+                    
                     # Notify user that the output file is saved
                     st.success(f"Market insights generation complete! File saved as `{output_filename}`.")
 
@@ -249,3 +244,64 @@ elif page_selection == "📈 Market Insights" and not st.session_state['insights
                 
                 # End of card
                 st.markdown('</div>', unsafe_allow_html=True)
+
+# Provocations Page Logic
+elif page_selection == "💡 Provocations":
+    st.title("Generate Provocations")
+
+    # File uploader to upload both Excel files at once
+    uploaded_files = st.file_uploader("Please upload two Excel files (1 for Topic Description and 1 for Topic Keywords)", type=["xlsx"], accept_multiple_files=True)
+
+    if len(uploaded_files) == 2:
+        try:
+            # Identify which file corresponds to which data by checking the content of the columns
+            topic_description_file = None
+            topic_keywords_file = None
+
+            # Loop through the uploaded files and assign them based on column names
+            # Loop through the uploaded files and assign them based on column names
+            for file in uploaded_files:
+                df = pl.read_excel(file)
+                if 'Description' in df.columns:
+                    topic_description_file = df
+                elif 'keyword' in df.columns:
+                    topic_keywords_file = df
+            # Check if both files are correctly assigned
+            if topic_description_file is not None and topic_keywords_file is not None:
+                # Allow the user to select a topic
+                topics = topic_description_file["Topic"].unique()
+                selected_topic = st.selectbox("Choose a topic to generate provocations for:", topics)
+
+                if selected_topic:
+                    # Filter the description and keywords for the selected topic
+                    selected_topic_description = topic_description_file.filter(pl.col("Topic") == selected_topic)
+                    selected_topic_keywords = topic_keywords_file.filter(pl.col("Topic") == selected_topic)
+
+                    # Call the `generate_provocations` function for the selected topic
+                    st.write(f"Generating provocations for topic: **{selected_topic}**")
+                    provocations_data = generate_provocations(selected_topic_description, selected_topic_keywords)
+
+                    # Display the provocations in a beautiful way
+                    st.header(f"🧠 Generated Provocations for {selected_topic}")
+
+                    for provocation in provocations_data:
+                        st.markdown(
+                            f"""
+                            <div class="provocation-card">
+                                <div class="provocation-theme">Theme: {provocation["Attributed Themes"]}</div>
+                                <div class="provocation-title">Topic: {provocation["Topic"]}</div>
+                                <div class="provocation-content">{provocation["Provocations"][0]}</div>
+                                <div class="provocation-content">{provocation["Provocations"][1]}</div>
+                            </div>
+                            """, 
+                            unsafe_allow_html=True
+                        )
+
+                    # Display a success message
+                    st.success(f"Provocations generated and displayed successfully for {selected_topic}.")
+            else:
+                st.error("Please upload files with the correct columns: 'Topics', 'Description' for topic description and 'Topics', 'Keyword' for topic keywords.")
+        except Exception as e:
+            st.error(f"Error processing the files: {e}")
+    else:
+        st.write("Please upload both Excel files at the same time to proceed.")
