@@ -8,7 +8,7 @@ import requests
 import justext
 from PyPDF2 import PdfReader
 from io import BytesIO
-rom serpapi import GoogleSearch
+from serpapi import GoogleSearch
 from scrapegraphai.graphs import SmartScraperGraph
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils import text_generation
