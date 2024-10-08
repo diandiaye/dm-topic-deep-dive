@@ -8,8 +8,8 @@ import requests
 import justext
 from PyPDF2 import PdfReader
 from io import BytesIO
-from serpapi import GoogleSearch
-#import serpapi
+#from serpapi import GoogleSearch
+import serpapi
 from scrapegraphai.graphs import SmartScraperGraph
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils import text_generation
@@ -55,8 +55,8 @@ def fetch_search_results(query: str, api_key: str, time_range: Optional[str] = N
         "num": 250,
         "tbs": tbs_value  # Apply the time filter if provided
     }
-    #search = serpapi.search(search_params)
-    search = GoogleSearch(search_params)
+    search = serpapi.search(search_params)
+    #search = GoogleSearch(search_params)
     result = search.get_dict()
 
     for item in result.get("organic_results", []):
