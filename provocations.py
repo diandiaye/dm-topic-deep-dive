@@ -23,7 +23,7 @@ def generate_provocations(topic_description, topic_keywords):
     # Step 5: Load prompts
     print("Step 5: Loading prompt templates...")
     company = "Coty"
-    prompt = load_prompts("/Users/ndiaye.dia/Desktop/TOPIC-DEEP-DIVE/MARKET-INSIGTHS/APP/prompt.json")
+    prompt = load_prompts("prompt.json")
 
     # Function to generate 2 responses based on prompt and template
     def generate_responses(row: dict) -> list:
