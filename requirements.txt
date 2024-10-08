@@ -2,6 +2,7 @@ polars==0.20.25
 playwright==1.47.0
 tqdm==4.66.5
 serpapi==0.1.5
+ollama
 faiss-cpu==1.8.0.post1
 filelock==3.16.0
 free_proxy==1.1.2
