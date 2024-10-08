@@ -238,6 +238,7 @@ def run_smart_scraper(
             valid_result = False
 
             for key, main_field_data in result.items():
+                print(key,main_field_data)
                 if isinstance(main_field_data, dict) and main_field_data:
                     # Check if all values in main_field_data are not empty or 'NA'
                     if all(
