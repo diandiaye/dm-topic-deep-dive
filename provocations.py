@@ -76,8 +76,8 @@ def generate_provocations(topic_description, topic_keywords):
     with open(file_path, 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
     print("Script execution completed.")
-    print("json_data")
-    print(json_data)
+    st.writ("json_data")
+    st.write(json_data)
     return json_data
 
     
