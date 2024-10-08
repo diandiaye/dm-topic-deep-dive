@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from time import sleep  # For simulating progression
+import time  # For simulating the progress bar
 import polars as pl
 from open_ai_market_insigth import (
     fetch_search_results, 
@@ -43,29 +43,28 @@ st.markdown(
     .external-link { display: inline-block; color: #1f77b4; font-weight: bold; text-decoration: none; font-size: 1rem; }
     .external-link:hover { text-decoration: underline; }
     .external-link::after { content: ' \\2197'; }
-    .provocation-card {
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+
+    .provocations-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Space between the provocations */
+        margin-top: 20px;
+    }
+    .provocation-box {
+        background-color: #6C63FF;
+        color: white;
         padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        text-align: left;
     }
-    .provocation-title {
-        color: #1f77b4;
+    .provocation-box h3 {
+        font-size: 1.2rem;
         font-weight: bold;
-        font-size: 1.25rem;
+        margin-bottom: 10px;
+        color: rgba(255, 255, 255, 0.8);
     }
-    .provocation-content {
+    .provocation-box p {
         font-size: 1rem;
-        color: #333;
-        margin-top: 10px;
-    }
-    .provocation-theme {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #555;
-        margin-top: 5px;
     }
     </style>
     """, 
@@ -110,7 +109,7 @@ elif page_selection == "🤖 Get Insights":
 
                     steps = 5
                     for step in range(steps):
-                        sleep(1)
+                        time.sleep(1)
                         progress_bar.progress((step + 1) / steps)
 
                     OPENAI_API_KEY = "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"
@@ -210,30 +209,34 @@ elif page_selection == "📈 Market Insights" and not st.session_state['insights
 
 # Provocations Page Logic
 elif page_selection == "💡 Provocations":
-    st.title("View Provocations")
+    st.write("Welcome to the D&M Provocations generation page. Our algorithms make it possible to generate a provocative and forward thinking according to a given topic.")
 
-    st.subheader("Select a topic to view provocations:")
+    st.subheader("Select a topic to generate provocations:")
 
     # Extract the list of unique topics from the provocations JSON
     topics = [item["Topic"] for item in provocations_data]
-    selected_topic = st.selectbox("Pick a topic", topics)
+    selected_topic = st.selectbox("Pick a topic", topics, index=None)  # No default selection
 
     if selected_topic:
+        # Show progress bar
+        with st.spinner("Generating provocations, please wait..."):
+            time.sleep(4)  # Simulate delay of 4 seconds
+
         # Find the provocations associated with the selected topic
         selected_provocations = [p for p in provocations_data if p["Topic"] == selected_topic]
 
-        st.header(f"🧠 Provocations for {selected_topic}")
-
-        # Display provocations for the selected topic
+        # Display provocations in vertical boxes, separated by a space
+        st.markdown('<div class="provocations-container">', unsafe_allow_html=True)
         for provocation in selected_provocations:
             st.markdown(
                 f"""
-                <div class="provocation-card">
-                    <div class="provocation-theme">Theme: {provocation.get("Attributed Themes", "N/A")}</div>
-                    <div class="provocation-title">Topic: {provocation.get("Topic", selected_topic)}</div>
-                    <div class="provocation-content">{provocation.get("Provocations")[0]}</div>
-                    <div class="provocation-content">{provocation.get("Provocations")[1]}</div>
+                <div class="provocation-box">
+                    <h3>Provocations...</h3>
+                    <p>{provocation.get("Provocations")[0]}</p>
+                    <p>{provocation.get("Provocations")[1]}</p>
+                    <p>{provocation.get("Provocations")[2]}</p>  <!-- Displaying the third provocation -->
                 </div>
                 """, 
                 unsafe_allow_html=True
             )
+        st.markdown('</div>', unsafe_allow_html=True)
