@@ -1,3 +1,5 @@
+import subprocess
+subprocess.call(['sh', './test.sh']) # Thanks @Jim Dennis for suggesting the []
 import streamlit as st
 import json
 from time import sleep  # For simulating progression
@@ -11,8 +13,6 @@ from open_ai_market_insigth import (
     run_multiple_configs, 
     search
 )
-import subprocess
-subprocess.call(['sh', './test.sh']) # Thanks @Jim Dennis for suggesting the []
 
 # Load data from external JSON file
 with open("kraft_market_insigths.json") as f:
