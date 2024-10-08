@@ -225,7 +225,7 @@ def run_smart_scraper(
 
             # Run the smart scraper on the URL
             result = smart_scraper_graph.run()
-            print("result:', result)
+            print(result)
 
             # Save the last attempted result
             last_result = {
