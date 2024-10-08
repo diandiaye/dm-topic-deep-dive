@@ -146,10 +146,13 @@ elif page_selection == "🤖 Get Insights":
                         sleep(1)  # Simulate some work being done
                         progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-                    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+                   ## OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+                    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+                    API_KEY = st.secrets["API_KEY"]
+
                     
                     # SerpAPI Key
-                    API_KEY = os.environ.get("API_KEY") 
+                    ###API_KEY = os.environ.get("API_KEY") 
 
                     # Fetching search results for the selected topics
                     texts_df = search(API_KEY, selected_topics, "Beauty")  # Modify as needed for specific context
