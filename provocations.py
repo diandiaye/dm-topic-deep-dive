@@ -61,8 +61,6 @@ def generate_provocations(topic_description, topic_keywords):
         .map_elements(generate_responses, return_dtype=pl.List(pl.Utf8))  # Ensure we return a list of strings (Provocations)
         .alias("Provocations")
     )
-    st.write(df_results)
-
     # Step 7: No need to convert to Pandas; work directly with Polars DataFrame
     print("Step 7: Working directly with Polars DataFrame...")
 
