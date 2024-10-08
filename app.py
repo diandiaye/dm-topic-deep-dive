@@ -110,7 +110,7 @@ st.markdown(
 
 # Sidebar with Navigation and Buttons (Reorganized)
 st.sidebar.title("📊 Navigation")
-page_selection = st.sidebar.radio("Go to", ["🏠 Home", "🤖 Get Insights", "📈 Market Insights", "💡 Provocations", "📉 Topic Evolution"], index=0)
+page_selection = st.sidebar.radio("Go to", ["🏠 Home", "📈 Market Insights", "💡 Topic Provocations", "📉 Topic Evolution"], index=0)
 
 # Home Page Logic
 if page_selection == "🏠 Home":
