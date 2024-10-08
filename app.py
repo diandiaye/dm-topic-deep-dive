@@ -149,8 +149,8 @@ elif page_selection == "🤖 Get Insights":
                         time.sleep(1)
                         progress_bar.progress((step + 1) / steps)
 
-                    OPENAI_API_KEY = "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"
-                    API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1"
+                    OPENAI_API_KEY = ""
+                    API_KEY = ""
                     
                     texts_df = search(API_KEY, selected_topics, "Food")
 
