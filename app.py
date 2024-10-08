@@ -149,7 +149,7 @@ elif page_selection == "🤖 Get Insights":
                     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
                     
                     # SerpAPI Key
-                    API_KEY = os.environ.get("API_KEY") 
+                    API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1" ##os.environ.get("API_KEY") 
 
                     # Fetching search results for the selected topics
                     texts_df = search(API_KEY, selected_topics, "Beauty")  # Modify as needed for specific context
