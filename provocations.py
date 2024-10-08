@@ -18,7 +18,7 @@ def generate_provocations(topic_description, topic_keywords):
 
     # Step 4: Classify topics into themes
     print("Step 4: Classifying topics into themes...")
-    df_results = classify_topics_into_themes(data.head(1))
+    df_results = classify_topics_into_themes(data)
 
     # Step 5: Load prompts
     print("Step 5: Loading prompt templates...")
