@@ -11,7 +11,11 @@ from open_ai_market_insigth import (
     run_multiple_configs, 
     search
 )
+import os
 import subprocess
+
+# Set the path to include where 'ollama' is located, for example:
+os.environ['PATH'] += os.pathsep + "ollama"  # Adjust this to your system's path
 
 # Command to execute
 command = ["ollama", "run", "llama3"]
@@ -27,6 +31,7 @@ print(result.stdout)
 if result.stderr:
     print("Errors:")
     print(result.stderr)
+
 
 # Load data from external JSON file
 with open("kraft_market_insigths.json") as f:
