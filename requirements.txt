@@ -99,6 +99,7 @@ s3transfer==0.10.2
 scrapegraphai==1.16.0
 semchunk==2.2.0
 serpapi==0.1.5
+google-search-results
 shapely==2.0.4
 shellingham==1.5.4
 six==1.16.0
