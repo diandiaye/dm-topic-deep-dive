@@ -154,7 +154,7 @@ elif page_selection == "🤖 Get Insights":
                         sleep(1)  # Simulate some work being done
                         progress_bar.progress((step + 1) / steps)  # Update progress bar
 
-                    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+                    OPENAI_API_KEY = "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" ##os.environ.get("OPENAI_API_KEY")
                     
                     # SerpAPI Key
                     API_KEY = "82fc16c43b8c8d9e2cad8e06a7927bd2d32c9fc9194c89b2a55057ebc4162ad1" ##os.environ.get("API_KEY") 
