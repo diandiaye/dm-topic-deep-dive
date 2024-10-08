@@ -16,7 +16,7 @@ with open("kraft_market_insigths.json") as f:
     data = json.load(f)
 
 # Load provocations data from JSON file (assumed to be a list of dictionaries)
-with open("Kraft_topics_provocations.json") as prov_file:
+with open("DATA/Kraft_topics_provocations.json") as prov_file:
     provocations_data = json.load(prov_file)
 
 # Initialize session state variables if not already set
