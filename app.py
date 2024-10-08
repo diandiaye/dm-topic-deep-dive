@@ -280,8 +280,8 @@ elif page_selection == "💡 Provocations":
                     # Call the `generate_provocations` function for the selected topic
                     st.write(f"Generating provocations for topic: **{selected_topic}**")
                     provocations_data = generate_provocations(selected_topic_description, selected_topic_keywords)
-                    print("provocations_data")
-                    print(provocations_data)
+                    st.write("provocations_data")
+                    st.write(provocations_data)
 
                     # Display the provocations in a beautiful way
                     st.header(f"🧠 Generated Provocations for {selected_topic}")
